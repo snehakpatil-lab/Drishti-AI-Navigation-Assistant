@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drishti - AI Navigation Assistant</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            color: #FFFF00;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+        }
+        #app-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #prompt-text {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        video {
+            display: none;
+        }
+    </style>
+    <!-- TensorFlow.js and COCO-SSD for Browser Object Detection & Identification -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+</head>
+<body>
+
+    <div id="app-container">
+        <h1 id="prompt-text">Tap and speak</h1>
+    </div>
+
+    <!-- Hidden Video Element for Background Camera Processing -->
+    <video id="camera-feed" autoplay playsinline muted></video>
+
+    <script>
+        // Language Strings
+        const STRINGS = {
+            en: {
+                ready: "Drishti is ready. Tap and speak.",
+                ui: "Tap and speak",
+                obstacle: "Obstacle ahead. Stop.",
+                sorry: "Sorry, tap and speak again.",
+                guidanceStopped: "Guidance stopped.",
+                arrived: "You have arrived.",
+                help: "Commands: stop, repeat, where am I, switch language, identify.",
+                askLanguage: "English, Hindi, or Kannada?",
+                langChanged: "Language changed to English.",
+                locationPrefix: "You are near ",
+                placeNotFound: "Could not find location.",
+                gpsError: "Cannot find location. Please enable GPS.",
+                notSure: "I am not sure. Move the phone closer.",
+                cameraNotReady: "Camera not ready. Try again.",
+                careful: "Careful. ",
+                left: "on your left",
+                ahead: "ahead",
+                right: "on your right"
+            },
+            hi: {
+                ready: "दृष्टि तैयार है। टैप करें और बोलें।",
+                ui: "टैप करें और बोलें",
+                obstacle: "आगे रुकावट है। रुकें।",
+                sorry: "क्षमा करें, फिर से टैप करें और बोलें।",
+                guidanceStopped: "मार्गदर्शन बंद कर दिया गया।",
+                arrived: "आप पहुँच गए हैं।",
+                help: "कमांड: रुकें, दोहराएं, मैं कहाँ हूँ, भाषा बदलें, पहचानो।",
+                askLanguage: "अंग्रेजी, हिंदी, या कन्नड़?",
+                langChanged: "भाषा बदलकर हिंदी की गई।",
+                locationPrefix: "आप इसके पास हैं ",
+                placeNotFound: "स्थान नहीं मिला।",
+                gpsError: "लोकेशन नहीं मिल रही है।",
+                notSure: "मुझे पक्का नहीं पता। फोन पास लाएं।",
+                cameraNotReady: "कैमरा तैयार नहीं है। फिर कोशिश करें।",
+                careful: "सावधान। ",
+                left: "आपकी बाईं ओर",
+                ahead: "आगे",
+                right: "आपकी दाईं ओर"
+            },
+            kn: {
+                ready: "ದೃಷ್ಟಿ ಸಿದ್ಧವಾಗಿದೆ. ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ.",
+                ui: "ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ",
+                obstacle: "ಮುಂದೆ ಅಡಚಣೆ ಇದೆ. ನಿಲ್ಲಿ.",
+                sorry: "ಕ್ಷಮಿಸಿ, ಮತ್ತೆ ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ.",
+                guidanceStopped: "ಮಾರ್ಗದರ್ಶನ ನಿಲ್ಲಿಸಲಾಗಿದೆ.",
+                arrived: "ನೀವು ತಲುಪಿದ್ದೀರಿ.",
+                help: "ಆಜ್ಞೆಗಳು: ನಿಲ್ಲಿಸಿ, ಪುನರಾವರ್ತಿಸಿ, ನಾನು ಎಲ್ಲಿದ್ದೇನೆ, ಭಾಷೆ ಬದಲಾಯಿಸಿ, ಗುರುತಿಸಿ.",
+                askLanguage: "ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ, ಅಥವಾ ಕನ್ನಡ?",
+                langChanged: "ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ.",
+                locationPrefix: "ನೀವು ಇದರ ಹತ್ತಿರ ಇದ್ದೀರಿ ",
+                placeNotFound: "ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ.",
+                gpsError: "ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ.",
+                notSure: "ನನಗೆ ಖಚಿತವಿಲ್ಲ. ಫೋನ್ ಹತ್ತಿರ ತನ್ನಿ.",
+                cameraNotReady: "ಕ್ಯಾಮೆರಾ ಸಿದ್ಧವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+                careful: "ಎಚ್ಚರಿಕೆ. ",
+                left: "ನಿಮ್ಮ ಎಡಭಾಗದಲ್ಲಿ",
+                ahead: "ಮುಂದೆ",
+                right: "ನಿಮ್ಮ ಬಲಭಾಗದಲ್ಲಿ"
+            }
+        };
+
+        let currentLang = 'en';
+        let isAwaitingLanguage = false;
+        let cocoModel = null;
+        let isCameraActive = false;
+        let lastObstacleWarningTime = 0;
+        let currentRouteSteps = [];
+        let currentStepIndex = 0;
+        let isNavigating = false;
+        let lastSpokenText = "";
+
+        const video = document.getElementById('camera-feed');
+        const promptText = document.getElementById('prompt-text');
+
+        // Text To Speech
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            lastSpokenText = text;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            if (currentLang === 'hi') utterance.lang = 'hi-IN';
+            else if (currentLang === 'kn') utterance.lang = 'kn-IN';
+            else utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Beep Audio
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Initialize Camera & Object Detection Model
+        async function initCameraAndModel() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: "environment" } }
+                }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
+
+                video.srcObject = stream;
+                isCameraActive = true;
+            } catch (err) {
+                console.warn("Camera access failed:", err);
+            }
+
+            try {
+                cocoModel = await cocoSsd.load();
+                console.log("COCO-SSD Model Loaded");
+                startObstacleLoop();
+            } catch (err) {
+                console.warn("COCO-SSD Load Error:", err);
+            }
+        }
+
+        // Background Obstacle Warning Loop
+        async function startObstacleLoop() {
+            if (!cocoModel || !isCameraActive) return;
+
+            try {
+                const predictions = await cocoModel.detect(video);
+                const videoWidth = video.videoWidth || 640;
+                const videoHeight = video.videoHeight || 480;
+                const frameArea = videoWidth * videoHeight;
+
+                for (let pred of predictions) {
+                    const [x, y, w, h] = pred.bbox;
+                    const areaRatio = (w * h) / frameArea;
+                    const centerX = x + (w / 2);
+                    const centerY = y + (h / 2);
+
+                    const inMiddleX = centerX >= (videoWidth / 3) && centerX <= (2 * videoWidth / 3);
+                    const inMiddleY = centerY >= (videoHeight / 4) && centerY <= (3 * videoHeight / 4);
+
+                    if (areaRatio >= 0.25 && inMiddleX && inMiddleY) {
+                        const now = Date.now();
+                        if (now - lastObstacleWarningTime >= 6000) {
+                            lastObstacleWarningTime = now;
+                            speak(STRINGS[currentLang].obstacle);
+                        }
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
+            requestAnimationFrame(startObstacleLoop);
+        }
+
+        // Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.trim().toLowerCase();
+                console.log("Recognized:", transcript);
+                handleVoiceCommand(transcript);
+            };
+
+            recognition.onerror = () => {
+                speak(STRINGS[currentLang].sorry);
+            };
+        }
+
+        function startListening() {
+            playBeep();
+            if (!recognition) {
+                alert("Speech recognition is not supported in this browser. Please use Google Chrome.");
+                return;
+            }
+            if (currentLang === 'hi') recognition.lang = 'hi-IN';
+            else if (currentLang === 'kn') recognition.lang = 'kn-IN';
+            else recognition.lang = 'en-US';
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Voice Command Processor
+        async function handleVoiceCommand(text) {
+            const strings = STRINGS[currentLang];
+
+            if (isAwaitingLanguage) {
+                isAwaitingLanguage = false;
+                if (text.includes("hindi") || text.includes("हिंदी")) {
+                    currentLang = 'hi';
+                } else if (text.includes("kannada") || text.includes("ಕನ್ನಡ")) {
+                    currentLang = 'kn';
+                } else {
+                    currentLang = 'en';
+                }
+                promptText.textContent = STRINGS[currentLang].ui;
+                speak(STRINGS[currentLang].langChanged + " " + STRINGS[currentLang].ready);
+                return;
+            }
+
+            // 1. Identify Command
+            const identifyTriggers = ["what is this", "what is it", "what is in front", "what is beside me", "what is around me", "identify", "what object", "yeh kya hai", "kya hai", "samne kya hai", "bagal me kya hai", "pehchano", "idu enu", "enide", "munde enide", "gurutisi"];
+            if (identifyTriggers.some(t => text.includes(t))) {
+                await handleIdentifyCommand(text);
+                return;
+            }
+
+            // 2. Stop Command
+            if (text.includes("stop") || text.includes("ruk") || text.includes("रुक") || text.includes("nillisi") || text.includes("ನಿಲ್ಲಿಸಿ")) {
+                isNavigating = false;
+                currentRouteSteps = [];
+                speak(strings.guidanceStopped);
+                return;
+            }
+
+            // 3. Repeat Command
+            if (text.includes("repeat") || text.includes("dobara") || text.includes("दोहरा") || text.includes("punaravartisi")) {
+                speak(lastSpokenText || strings.ready);
+                return;
+            }
+
+            // 4. Where Am I Command
+            if (text.includes("where am i") || text.includes("kahan") || text.includes("कहाँ") || text.includes("elliddene")) {
+                handleWhereAmI();
+                return;
+            }
+
+            // 5. Help Command
+            if (text.includes("help") || text.includes("madad") || text.includes("मदद") || text.includes("sahaya")) {
+                speak(strings.help);
+                return;
+            }
+
+            // 6. Switch Language Command
+            if (text.includes("switch language") || text.includes("change language") || text.includes("bhasha") || text.includes("भाषा") || text.includes("ಭಾಷೆ")) {
+                isAwaitingLanguage = true;
+                speak(strings.askLanguage);
+                return;
+            }
+
+            // 7. Navigation Command
+            handleNavigation(text);
+        }
+
+        // Identify Command Handler
+        async function handleIdentifyCommand(query) {
+            const strings = STRINGS[currentLang];
+            if (!cocoModel || !isCameraActive) {
+                speak(strings.cameraNotReady);
+                return;
+            }
+
+            try {
+                const predictions = await cocoModel.detect(video);
+                if (!predictions || predictions.length === 0) {
+                    speak(strings.notSure);
+                    return;
+                }
+
+                const isBeside = query.includes("beside") || query.includes("around") || query.includes("bagal") || query.includes("aspas");
+                const videoWidth = video.videoWidth || 640;
+
+                let bestPred = predictions[0];
+                let maxArea = 0;
+
+                for (let pred of predictions) {
+                    if (pred.score < 0.5) continue;
+                    const [x, y, w, h] = pred.bbox;
+                    const area = w * h;
+                    const centerX = x + (w / 2);
+                    const isSide = centerX < (videoWidth / 3) || centerX > (2 * videoWidth / 3);
+
+                    if (isBeside && isSide) {
+                        if (area > maxArea) {
+                            maxArea = area;
+                            bestPred = pred;
+                        }
+                    } else if (!isBeside && !isSide) {
+                        if (area > maxArea) {
+                            maxArea = area;
+                            bestPred = pred;
+                        }
+                    }
+                }
+
+                if (!bestPred || bestPred.score < 0.5) {
+                    speak(strings.notSure);
+                    return;
+                }
+
+                let name = bestPred.class;
+                if (name === "cell phone") name = "phone";
+                if (name === "person") name = "person";
+                if (name === "laptop") name = "laptop";
+
+                const [x, y, w, h] = bestPred.bbox;
+                const centerX = x + (w / 2);
+                let pos = strings.ahead;
+                if (centerX < videoWidth / 3) pos = strings.left;
+                else if (centerX > 2 * videoWidth / 3) pos = strings.right;
+
+                const isVehicle = ["car", "bus", "truck", "motorcycle", "bicycle"].includes(bestPred.class);
+                const prefix = isVehicle ? strings.careful : "";
+
+                const resultText = `${prefix}${name.charAt(0).toUpperCase() + name.slice(1)}, ${pos}.`;
+                speak(resultText);
+
+            } catch (err) {
+                console.error(err);
+                speak(strings.notSure);
+            }
+        }
+
+        // Where Am I Handler
+        function handleWhereAmI() {
+            const strings = STRINGS[currentLang];
+            if (!navigator.geolocation) {
+                speak(strings.gpsError);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                try {
+                    val lat = pos.coords.latitude;
+                    val lon = pos.coords.longitude;
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const data = await res.json();
+                    const name = data.address.road || data.address.suburb || data.address.city || "";
+                    if (name) {
+                        speak(strings.locationPrefix + name);
+                    } else {
+                        speak(strings.gpsError);
+                    }
+                } catch (e) {
+                    speak(strings.gpsError);
+                }
+            }, () => {
+                speak(strings.gpsError);
+            }, { enableHighAccuracy: true, timeout: 10000 });
+        }
+
+        // Navigation Handler
+        function handleNavigation(query) {
+            const strings = STRINGS[currentLang];
+            if (!navigator.geolocation) {
+                speak(strings.gpsError);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                try {
+                    const startLat = pos.coords.latitude;
+                    const startLon = pos.coords.longitude;
+
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&viewbox=${startLon-0.5},${startLat-0.5},${startLon+0.5},${startLat+0.5}`);
+                    const geoData = await geoRes.json();
+
+                    if (!geoData || geoData.length === 0) {
+                        speak(strings.placeNotFound);
+                        return;
+                    }
+
+                    const destLat = geoData[0].lat;
+                    const destLon = geoData[0].lon;
+
+                    const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/foot/${startLon},${startLat};${destLon},${destLat}?steps=true`);
+                    const osrmData = await osrmRes.json();
+
+                    if (osrmData.routes && osrmData.routes.length > 0) {
+                        const steps = osrmData.routes[0].legs[0].steps;
+                        if (steps && steps.length > 0) {
+                            const firstStep = steps[0];
+                            const instruction = `${firstStep.maneuver.modifier || 'Walk'} for ${Math.round(firstStep.distance)} meters.`;
+                            speak(instruction);
+                            return;
+                        }
+                    }
+
+                    speak(strings.placeNotFound);
+
+                } catch (e) {
+                    speak(strings.placeNotFound);
+                }
+            }, () => {
+                speak(strings.gpsError);
+            }, { enableHighAccuracy: true, timeout: 10000 });
+        }
+
+        // Screen Tap Event Listener
+        document.body.addEventListener('click', () => {
+            if (!isCameraActive) {
+                initCameraAndModel();
+            }
+            startListening();
+        });
+
+        // Initial Speech Greeting
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                speak(STRINGS.en.ready);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
