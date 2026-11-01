@@ -1,0 +1,171 @@
+package com.example.drushti
+
+import java.util.Locale
+
+enum class AppLanguage(val code: String, val locale: Locale, val speechLang: String) {
+    ENGLISH("en", Locale.US, "en-US"),
+    HINDI("hi", Locale("hi", "IN"), "hi-IN"),
+    KANNADA("kn", Locale("kn", "IN"), "kn-IN")
+}
+
+data class LanguageStrings(
+    val readyText: String,
+    val uiText: String,
+    val obstacleText: String,
+    val sorryText: String,
+    val guidanceStoppedText: String,
+    val arrivedText: String,
+    val helpText: String,
+    val askLanguageText: String,
+    val langChangedText: String,
+    val locationPrefix: String,
+    val placeNotFoundText: String,
+    val gpsErrorText: String,
+    val permissionErrorText: String,
+    val straightText: String,
+    val turnLeftText: String,
+    val turnRightText: String,
+    val keepLeftText: String,
+    val keepRightText: String,
+    val uTurnText: String,
+    val destinationHeadingText: String,
+    // Indoor & Location Fix Strings
+    val turnOnLocationText: String,
+    val findingLocationText: String,
+    val cannotFindLocationText: String,
+    val holdPhoneText: String,
+    val walkStraightText: String,
+    val stopObstacleText: String,
+    val keepWalkingText: String,
+    val doorAheadText: String,
+    // Identify Object Strings
+    val cameraNotReadyText: String,
+    val moveCloserText: String,
+    val maybePrefix: String,
+    val carefulPrefix: String,
+    val onYourLeftText: String,
+    val aheadText: String,
+    val onYourRightText: String
+)
+
+val ENGLISH_STRINGS = LanguageStrings(
+    readyText = "Drishti is ready. Tap and speak.",
+    uiText = "Tap and speak",
+    obstacleText = "Obstacle ahead. Stop.",
+    sorryText = "Sorry, tap and speak again.",
+    guidanceStoppedText = "Guidance stopped.",
+    arrivedText = "You have arrived.",
+    helpText = "Commands: stop, repeat, where am I, switch language.",
+    askLanguageText = "English, Hindi, or Kannada?",
+    langChangedText = "Language changed to English.",
+    locationPrefix = "You are near ",
+    placeNotFoundText = "Could not find location.",
+    gpsErrorText = "Cannot find location. Please go near a window.",
+    permissionErrorText = "Camera, microphone, and location permissions are required.",
+    straightText = "Walk straight.",
+    turnLeftText = "Turn left.",
+    turnRightText = "Turn right.",
+    keepLeftText = "Keep left.",
+    keepRightText = "Keep right.",
+    uTurnText = "Make a U turn.",
+    destinationHeadingText = "Walk towards destination.",
+    turnOnLocationText = "Please turn on location.",
+    findingLocationText = "Finding your location. Please wait.",
+    cannotFindLocationText = "Cannot find location. Please go near a window.",
+    holdPhoneText = "Hold the phone in front of you. Walk slowly.",
+    walkStraightText = "Walk straight.",
+    stopObstacleText = "Stop. Obstacle ahead.",
+    keepWalkingText = "Keep walking.",
+    doorAheadText = "Door ahead.",
+    cameraNotReadyText = "Camera not ready. Try again.",
+    moveCloserText = "I am not sure. Move the phone closer.",
+    maybePrefix = "Maybe a ",
+    carefulPrefix = "Careful. ",
+    onYourLeftText = "on your left",
+    aheadText = "ahead",
+    onYourRightText = "on your right"
+)
+
+val HINDI_STRINGS = LanguageStrings(
+    readyText = "दृष्टि तैयार है। टैप करें और बोलें।",
+    uiText = "टैप करें और बोलें",
+    obstacleText = "आगे रुकावट है। रुकें।",
+    sorryText = "क्षमा करें, फिर से टैप करें और बोलें।",
+    guidanceStoppedText = "मार्गदर्शन बंद कर दिया गया।",
+    arrivedText = "आप पहुँच गए हैं।",
+    helpText = "कमांड: रुकें, दोहराएं, मैं कहाँ हूँ, भाषा बदलें।",
+    askLanguageText = "अंग्रेजी, हिंदी, या कन्नड़?",
+    langChangedText = "भाषा बदलकर हिंदी की गई।",
+    locationPrefix = "आप इसके पास हैं ",
+    placeNotFoundText = "स्थान नहीं मिला।",
+    gpsErrorText = "लोकेशन नहीं मिल रही है। खिड़की के पास जाएं।",
+    permissionErrorText = "कैमरा, माइक और लोकेशन अनुमति चाहिए।",
+    straightText = "सीधे चलें।",
+    turnLeftText = "बाएं मुड़ें।",
+    turnRightText = "दाएं मुड़ें।",
+    keepLeftText = "बाएं रहें।",
+    keepRightText = "दाएं रहें।",
+    uTurnText = "यू टर्न लें।",
+    destinationHeadingText = "गंतव्य की ओर चलें।",
+    turnOnLocationText = "कृपया लोकेशन चालू करें।",
+    findingLocationText = "आपकी लोकेशन खोजी जा रही है। कृपया प्रतीक्षा करें।",
+    cannotFindLocationText = "लोकेशन नहीं मिल रही है। कृपया खिड़की के पास जाएं।",
+    holdPhoneText = "फोन अपने सामने पकड़ें। धीरे चलें।",
+    walkStraightText = "सीधे चलें।",
+    stopObstacleText = "रुकें। आगे रुकावट है।",
+    keepWalkingText = "चलते रहें।",
+    doorAheadText = "आगे दरवाजा है।",
+    cameraNotReadyText = "कैमरा तैयार नहीं है। फिर कोशिश करें।",
+    moveCloserText = "मुझे पक्का नहीं पता। फोन पास लाएं।",
+    maybePrefix = "शायद ",
+    carefulPrefix = "सावधान। ",
+    onYourLeftText = "आपकी बाईं ओर",
+    aheadText = "आगे",
+    onYourRightText = "आपकी दाईं ओर"
+)
+
+val KANNADA_STRINGS = LanguageStrings(
+    readyText = "ದೃಷ್ಟಿ ಸಿದ್ಧವಾಗಿದೆ. ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ.",
+    uiText = "ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ",
+    obstacleText = "ಮುಂದೆ ಅಡಚಣೆ ಇದೆ. ನಿಲ್ಲಿ.",
+    sorryText = "ಕ್ಷಮಿಸಿ, ಮತ್ತೆ ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ.",
+    guidanceStoppedText = "ಮಾರ್ಗದರ್ಶನ ನಿಲ್ಲಿಸಲಾಗಿದೆ.",
+    arrivedText = "ನೀವು ತಲುಪಿದ್ದೀರಿ.",
+    helpText = "ಆಜ್ಞೆಗಳು: ನಿಲ್ಲಿಸಿ, ಪುನರಾವರ್ತಿಸಿ, ನಾನು ಎಲ್ಲಿದ್ದೇನೆ, ಭಾಷೆ ಬದಲಾಯಿಸಿ.",
+    askLanguageText = "ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ, ಅಥವಾ ಕನ್ನಡ?",
+    langChangedText = "ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ.",
+    locationPrefix = "ನೀವು ಇದರ ಹತ್ತಿರ ಇದ್ದೀರಿ ",
+    placeNotFoundText = "ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ.",
+    gpsErrorText = "ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಕಿಟಕಿಯ ಹತ್ತಿರ ಹೋಗಿ.",
+    permissionErrorText = "ಕ್ಯಾಮೆರಾ, ಮೈಕ್ ಮತ್ತು ಸ್ಥಳ ಅನುಮತಿ ಅಗತ್ಯವಿದೆ.",
+    straightText = "ನೇರವಾಗಿ ನಡೆಯಿರಿ.",
+    turnLeftText = "ಎಡಕ್ಕೆ ತಿರುಗಿ.",
+    turnRightText = "ಬಲಕ್ಕೆ ತಿರುಗಿ.",
+    keepLeftText = "ಎಡಭಾಗದಲ್ಲಿರಿ.",
+    keepRightText = "ಬಲಭಾಗದಲ್ಲಿರಿ.",
+    uTurnText = "ಯು ಟರ್ನ್ ಮಾಡಿ.",
+    destinationHeadingText = "ಗಮ್ಯಸ್ಥಾನದ ಕಡೆಗೆ ನಡೆಯಿರಿ.",
+    turnOnLocationText = "ದಯವಿಟ್ಟು ಸ್ಥಳ ಸೇವೆ ಆನ್ ಮಾಡಿ.",
+    findingLocationText = "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಕಾಯಿರಿ.",
+    cannotFindLocationText = "ಸ್ಥಳ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಕಿಟಕಿಯ ಹತ್ತಿರ ಹೋಗಿ.",
+    holdPhoneText = "ಫೋನ್ ಅನ್ನು ನಿಮ್ಮ ಮುಂದೆ ಹಿಡಿದುಕೊಳ್ಳಿ. ನಿಧಾನವಾಗಿ ನಡೆಯಿರಿ.",
+    walkStraightText = "ನೇರವಾಗಿ ನಡೆಯಿರಿ.",
+    stopObstacleText = "ನಿಲ್ಲಿ. ಮುಂದೆ ಅಡಚಣೆ ಇದೆ.",
+    keepWalkingText = "ನಡೆಯುತ್ತಿರಿ.",
+    doorAheadText = "ಮುಂದೆ ಬಾಗಿಲು ಇದೆ.",
+    cameraNotReadyText = "ಕ್ಯಾಮೆರಾ ಸಿದ್ಧವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    moveCloserText = "ನನಗೆ ಖಚಿತವಿಲ್ಲ. ಫೋನ್ ಹತ್ತಿರ ತನ್ನಿ.",
+    maybePrefix = "ಬಹುಶಃ ",
+    carefulPrefix = "ಎಚ್ಚರಿಕೆ. ",
+    onYourLeftText = "ನಿಮ್ಮ ಎಡಭಾಗದಲ್ಲಿ",
+    aheadText = "ಮುಂದೆ",
+    onYourRightText = "ನಿಮ್ಮ ಬಲಭಾಗದಲ್ಲಿ"
+)
+
+fun getStringsForLanguage(language: AppLanguage): LanguageStrings {
+    return when (language) {
+        AppLanguage.ENGLISH -> ENGLISH_STRINGS
+        AppLanguage.HINDI -> HINDI_STRINGS
+        AppLanguage.KANNADA -> KANNADA_STRINGS
+    }
+}
